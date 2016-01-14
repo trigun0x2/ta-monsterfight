@@ -2,12 +2,13 @@ var TA = window.TA;
 
 class MonsterFight {
   constructor() {
-    this.monsters = [
+    this.monstersList = [
       {name: "Bob", health: 10},
       {name: "Ted", health: 10}
     ]
     this.keyPhrase;
     this.monsterHealth;
+    this.fightingMonster = false;
 
     TA.init(() => {
       TA.api.get('/user').then((user) => {
@@ -17,7 +18,7 @@ class MonsterFight {
 
     TA.twitch.chat.on('say', data => {
       // Add check to see if user is mod/owner
-      if (data.message == "!monsterfight") {
+      if (data.message == "!monsterfight" && !this.fightingMonster) {
         $("#monster").fadeIn();
         this.startFight();
       } else {
@@ -27,10 +28,10 @@ class MonsterFight {
   }
 
   spamAttack(message) {
-    console.log(this.keyPhrase);
+    console.log(message);
     if (message == this.keyPhrase){
       if (this.monsterHealth <= 1){
-        this.monsterDead(monster);
+        this.monsterDead(this.monster);
       }else{
         this.monsterHealth -= 1;
         console.log(`DMG: ${this.monsterHealth} left`);
@@ -45,6 +46,7 @@ class MonsterFight {
     TA.twitch.chat.off();
     TA.twitch.chat.say(`${monster.name} was defeated!`);
     $("#key-phrase").text(`YOU DID IT TWITCH CHAT! ${monster.name} was REKT!`);
+    this.fightingMonster = false;
   }
 
   startFight() {
@@ -52,8 +54,10 @@ class MonsterFight {
     $.get("http://metaphorpsum.com/sentences/1")
       .done((data) => {
         $("#key-phrase").text(data);
-        this.monsterHealth = this.monsters[0];
+        this.monster = this.monstersList[0];
+        this.monsterHealth = this.monster.health;
         this.keyPhrase = data;
+        this.fightingMonster = true;
       });
   }
 
