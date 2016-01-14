@@ -3,38 +3,73 @@ var TA = window.TA;
 class MonsterFight {
   constructor() {
     this.monsters = [
-      {name: "Bob", health: 900},
-      {name: "Ted", health: 200}
+      {name: "Bob", health: 10},
+      {name: "Ted", health: 10}
     ]
     this.keyPhrase;
     this.monsterHealth;
 
-    // TA.twitch.chat.on('say', data => {
-    //   // Add check to see if user is mod/owner
-    //   if (data.message == "!monsterfight") {
-    //     $("#monster").fadeIn();
-    //     let monster = this.monsters[_.random(0,this.monsters.length - 1)];
-    //     this.startSpamAttacks(monster);
-    //   }
-    // });
+    TA.init(() => {
+      TA.api.get('/user').then((user) => {
+        console.log(user);
+      });
+    });
+
+    TA.twitch.chat.on('say', data => {
+      // Add check to see if user is mod/owner
+      if (data.message == "!monsterfight") {
+        $("#monster").fadeIn();
+        this.startFight();
+      }
+    });
   }
 
-  startSpamAttacks(monster) {
+  enableSpamAttacks(monster, phrase) {
     this.monsterHealth = monster.health;
-    this.getKeyPhrase(30000);
+    this.keyPhrase = phrase;
     TA.twitch.chat.on('say', (data) => {
-      if (data.message == this.keyPhrase){
-        this.monsterHealth -= 1;
+      console.log(this.keyPhrase);
+      if (data == this.keyPhrase){
+        if (this.monsterHealth <= 1){
+          this.monsterDead(monster);
+        }else{
+          this.monsterHealth -= 1;
+          console.log(`DMG: ${this.monsterHealth} left`);
+          if (this.monsterHealth%5 == 0){
+            this.newKeyPhrase();
+          }
+        }
       }
     })
   }
 
-  getKeyPhrase() {
-    $.get("http://metaphorpsum.com/sentences/1", (data) => {
-      $("#key-phrase").text(data);
-    });
+  monsterDead(monster) {
+    TA.twitch.chat.off();
+    TA.twitch.chat.say(`${monster.name} was defeated!`);
+    $("#key-phrase").text(`YOU DID IT TWITCH CHAT! ${monster.name} was REKT!`);
+  }
+
+  startFight() {
+    TA.twitch.chat.off();
+    $.get("http://metaphorpsum.com/sentences/1")
+      .done((data) => {
+        $("#key-phrase").text(data);
+        this.enableSpamAttacks(this.monsters[0], data);
+      });
+  }
+
+  newKeyPhrase() {
+    $.get("http://metaphorpsum.com/sentences/1")
+      .done((data) => {
+        $("#key-phrase").text(data);
+        this.keyPhrase = data;
+      });
   }
 }
 
+var monsterdebugger = function(){
+  this.fight = () => {
+    
+  }
+}
 var monsterFight = new MonsterFight();
-monsterFight.getKeyPhrase();
