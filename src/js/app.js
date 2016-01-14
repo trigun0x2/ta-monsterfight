@@ -20,27 +20,25 @@ class MonsterFight {
       if (data.message == "!monsterfight") {
         $("#monster").fadeIn();
         this.startFight();
+      } else {
+        this.spamAttack(data.message);
       }
     });
   }
 
-  enableSpamAttacks(monster, phrase) {
-    this.monsterHealth = monster.health;
-    this.keyPhrase = phrase;
-    TA.twitch.chat.on('say', (data) => {
-      console.log(this.keyPhrase);
-      if (data == this.keyPhrase){
-        if (this.monsterHealth <= 1){
-          this.monsterDead(monster);
-        }else{
-          this.monsterHealth -= 1;
-          console.log(`DMG: ${this.monsterHealth} left`);
-          if (this.monsterHealth%5 == 0){
-            this.newKeyPhrase();
-          }
+  spamAttack(message) {
+    console.log(this.keyPhrase);
+    if (message == this.keyPhrase){
+      if (this.monsterHealth <= 1){
+        this.monsterDead(monster);
+      }else{
+        this.monsterHealth -= 1;
+        console.log(`DMG: ${this.monsterHealth} left`);
+        if (this.monsterHealth%5 == 0){
+          this.newKeyPhrase();
         }
       }
-    })
+    }
   }
 
   monsterDead(monster) {
@@ -54,7 +52,8 @@ class MonsterFight {
     $.get("http://metaphorpsum.com/sentences/1")
       .done((data) => {
         $("#key-phrase").text(data);
-        this.enableSpamAttacks(this.monsters[0], data);
+        this.monsterHealth = this.monsters[0];
+        this.keyPhrase = data;
       });
   }
 
